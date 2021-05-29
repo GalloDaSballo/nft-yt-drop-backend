@@ -8,6 +8,8 @@ export default router;
 interface Drop {
   id: string;
   channelId: string;
+  channelThumb: string;
+  channelName: string;
   imageURI: string;
   endDate: Date;
 }
@@ -25,7 +27,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { channelId, imageURI, endDate } = req.body;
+  const { channelId, imageURI, endDate, channelName, channelThumb } = req.body;
   if (!channelId) {
     return res.status(400).send("Please have a product channelId");
   }
@@ -38,7 +40,7 @@ router.post("/", async (req, res) => {
   }
 
   const result = await db<Drop>("drops")
-    .insert({ channelId, imageURI, endDate })
+    .insert({ channelId, imageURI, endDate, channelName, channelThumb })
     .returning("*");
 
   res.send(result);
