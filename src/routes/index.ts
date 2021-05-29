@@ -1,12 +1,10 @@
 import express from "express";
-import basicRoutes from "./basic";
-import productsRoutes from "./products";
-import authRoutes from "./auth";
+import dropsRoutes from "./drops";
+import claimRoutes from "./claim";
 
 const router = express.Router();
 
-router.use("/basic", basicRoutes);
-router.use("/products", productsRoutes);
-router.use("/auth", authRoutes);
+router.use("/drops", dropsRoutes);
+router.use("/claim", claimRoutes);
 
 export default router;
