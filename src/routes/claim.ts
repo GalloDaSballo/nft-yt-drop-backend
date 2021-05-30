@@ -77,13 +77,8 @@ const mint = async (address: string, imageURI: string, channelId: string) => {
   const wallet = new Wallet(WALLET_PK).connect(new JsonRpcProvider(MATIC_RPC));
   console.log("wallet address", await wallet.getAddress());
 
-  console.log("Minting");
-  console.log("address", address);
-  console.log("imageURI", imageURI);
-  // const abi = JSON.parse(`[${abiJSON}]`);
-  // console.log("abi", abi);
   const proofOfSub = new Contract(PROOF_OF_SUM_CONTRACT, abiJSON, wallet);
-  console.log("proofOfSub", proofOfSub);
+  console.log("Waiting for TX");
   const receipt = await (
     await proofOfSub.awardItem(address, imageURI, channelId)
   ).wait();
