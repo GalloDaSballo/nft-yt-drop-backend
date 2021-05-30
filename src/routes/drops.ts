@@ -8,6 +8,8 @@ export default router;
 interface Drop {
   id: string;
   channelId: string;
+  channelName: string;
+  channelThumb: string;
   imageURI: string;
   endDate: Date;
 }
@@ -25,23 +27,36 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { channelId, imageURI, endDate } = req.body;
-  if (!channelId) {
-    return res.status(400).send("Please have a product channelId");
-  }
-  if (!imageURI) {
-    return res.status(400).send("Please have a product imageURI");
-  }
+  try {
 
-  if (!endDate) {
-    return res.status(400).send("Please have a product endDate");
+
+    const { channelId, imageURI, endDate, channelName, channelThumb } = req.body;
+    if (!channelId) {
+      return res.status(400).send("Please have a product channelId");
+    }
+    if (!channelName) {
+      return res.status(400).send("Please have a product channelName");
+    }
+    if (!channelThumb) {
+      return res.status(400).send("Please have a product channelName");
+    }
+    if (!imageURI) {
+      return res.status(400).send("Please have a product imageURI");
+    }
+
+    if (!endDate) {
+      return res.status(400).send("Please have a product endDate");
+    }
+
+    const result = await db<Drop>("drops")
+      .insert({ channelId, imageURI, endDate, channelName, channelThumb })
+      .returning("*");
+
+    res.send(result);
+  } catch (e) {
+    console.log(e);
+    return res.status(400).send(e);
   }
-
-  const result = await db<Drop>("drops")
-    .insert({ channelId, imageURI, endDate })
-    .returning("*");
-
-  res.send(result);
 });
 
 router.delete("/:id", async (req, res) => {

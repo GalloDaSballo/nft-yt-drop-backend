@@ -1,8 +1,15 @@
 import express from "express";
 import axios from "axios";
 import db from "../db";
+import { Wallet } from "@ethersproject/wallet";
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { Contract } from "@ethersproject/contracts";
+import { MATIC_RPC, PROOF_OF_SUM_CONTRACT, WALLET_PK } from "../constants";
+import ethers from "ethers";
 
 const router = express.Router();
+
+import abiJSON = require("../abis/ProofOfSub.json");
 
 export default router;
 
@@ -18,6 +25,7 @@ interface SubItem {
     publishedAt: string;
   };
 }
+
 interface Subscription {
   items: SubItem[];
 }
@@ -45,6 +53,19 @@ const checkSubscriptionCriteria = (item: SubItem, drop: Drop): boolean => {
   if (!item || !drop) {
     return false;
   }
+  console.log(
+    "new Date(item.snippet.publishedAt).getTime()",
+    new Date(item.snippet.publishedAt).getTime()
+  );
+  console.log(
+    "new Date(drop.endDate).getTime()",
+    new Date(drop.endDate).getTime()
+  );
+  console.log(
+    "(boolean)",
+    new Date(item.snippet.publishedAt).getTime() <=
+      new Date(drop.endDate).getTime()
+  );
 
   return (
     new Date(item.snippet.publishedAt).getTime() <=
@@ -52,10 +73,22 @@ const checkSubscriptionCriteria = (item: SubItem, drop: Drop): boolean => {
   );
 };
 
-const mint = async (address: string, imageURI: string) => {
+const mint = async (address: string, imageURI: string, channelId: string) => {
+  const wallet = new Wallet(WALLET_PK).connect(new JsonRpcProvider(MATIC_RPC));
+  console.log("wallet address", await wallet.getAddress());
+
   console.log("Minting");
   console.log("address", address);
   console.log("imageURI", imageURI);
+  // const abi = JSON.parse(`[${abiJSON}]`);
+  // console.log("abi", abi);
+  const proofOfSub = new Contract(PROOF_OF_SUM_CONTRACT, abiJSON, wallet);
+  console.log("proofOfSub", proofOfSub);
+  const receipt = await (
+    await proofOfSub.awardItem(address, imageURI, channelId)
+  ).wait();
+  console.log("receipt", receipt);
+  return receipt;
 };
 
 router.post("/", async (req, res) => {
@@ -88,15 +121,19 @@ router.post("/", async (req, res) => {
   if (!shouldMint) {
     return res.status(400).send("You don't match the criteria for this drop");
   }
+  try {
+    // Mint NFT
+    const result = await mint(address, foundDrop.imageURI, channelId);
+    console.log("result", result);
 
-  // Mint NFT
-  await mint(address, foundDrop.imageURI);
-
-  // Send Confirmation
-  res.send({
-    nft: {
-      address: "",
-      tokenId: "",
-    },
-  });
+    // Send Confirmation
+    res.send({
+      nft: {
+        address,
+        tokenId: foundDrop.imageURI, // TODO: get token ID instead
+      },
+    });
+  } catch (e) {
+    res.status(400).send(e);
+  }
 });
