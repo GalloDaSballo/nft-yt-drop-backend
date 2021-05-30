@@ -1,11 +1,11 @@
 import express from "express";
 import axios from "axios";
-import db from "../db";
 import { Wallet } from "@ethersproject/wallet";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { Contract } from "@ethersproject/contracts";
-import { MATIC_RPC, PROOF_OF_SUM_CONTRACT, WALLET_PK } from "../constants";
 import ethers from "ethers";
+import { MATIC_RPC, PROOF_OF_SUM_CONTRACT, WALLET_PK } from "../constants";
+import db from "../db";
 
 const router = express.Router();
 
@@ -129,8 +129,7 @@ router.post("/", async (req, res) => {
     // Send Confirmation
     res.send({
       nft: {
-        address,
-        tokenId: foundDrop.imageURI, // TODO: get token ID instead
+        imageURI: foundDrop.imageURI,
       },
     });
   } catch (e) {
